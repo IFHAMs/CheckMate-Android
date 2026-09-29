@@ -1,12 +1,21 @@
-# CheckMate Android — GitHub Actions build
+# CheckMate — offline + archive + seen update
 
-This is a lightweight Android WebView wrapper for the live CheckMate site at https://checkmate.gt.tc/.
+This package keeps the existing CheckMate username/Supabase setup and adds:
 
-## Build
-1. Upload the contents of this folder to the `IFHAMs/CheckMate-Android` GitHub repository (or a new repository).
-2. Open **Actions → Build CheckMate APK → Run workflow**.
-3. When it finishes, open the workflow run and download the **CheckMate-debug-apk** artifact.
+- Offline text-message queue using localStorage; queued text sends automatically when internet returns.
+- Chat archive per user.
+- Chat list with usernames, latest message preview, time, and unread count.
+- Seen status using `messages.seen_at`.
+- Existing chess, photo/video upload, and camera features remain.
 
-The build runs on GitHub's hosted Linux runner, so Windows 7 is not used for compiling.
+## Supabase migration
+Run `offline_archive_seen_migration.sql` in the Supabase SQL Editor **after** the existing `supabase.sql` and `username_migration.sql` migrations.
 
-The debug APK is suitable for testing/installing on Android. It is not a Play Store release signing setup.
+No existing messages are deleted.
+
+## Important
+Offline mode can queue **text** messages. Photos/videos still require internet in this version because they must be uploaded to Supabase Storage.
+
+## Chat upgrades migration
+Run `chat_upgrades_migration.sql` once in Supabase SQL Editor after the earlier migrations. It adds last-seen timestamps, message replies, reactions (❤️ 😂 👍), and sender-only message deletion.
+Typing indicators use Supabase Realtime Broadcast and do not require another SQL table.
