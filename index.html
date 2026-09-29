@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CheckMate</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app">
+    <section id="authView" class="screen">
+      <div class="brand brand-logo"><img src="checkmate-logo.png" alt="CheckMate logo"><span>CheckMate</span></div>
+      <div class="auth-card">
+        <h1 id="authTitle">Sign in</h1>
+        <p id="authHint">Sign in to your account.</p>
+        <form id="authForm">
+          <input id="username" type="text" placeholder="Username" autocomplete="username" minlength="3" maxlength="24" required>
+          <input id="password" type="password" placeholder="Password" autocomplete="current-password" minlength="6" required>
+          <button class="primary" type="submit" id="authSubmit">Sign in</button>
+        </form>
+        <button class="link-btn" id="toggleAuth" type="button">Create an account</button>
+        <p id="authStatus" class="status"></p>
+      </div>
+    </section>
+
+    <section id="gameView" class="screen hidden">
+      <header class="topbar">
+        <div>
+          <div class="brand small brand-logo"><img src="checkmate-logo.png" alt="CheckMate logo"><span>CheckMate</span></div>
+          <div id="userEmail" class="muted"></div>
+        </div>
+        <button id="logoutBtn" class="ghost" type="button">Log out</button>
+      </header>
+
+      <div class="game-layout">
+        <div class="game-card">
+          <div class="game-head">
+            <div>
+              <h1>Chess</h1>
+              <p id="gameStatus" class="muted">Your move</p>
+            </div>
+            <button id="newGameBtn" class="ghost" type="button">New game</button><button id="robotBtn" class="ghost" type="button">Play vs Robot</button>
+          </div>
+          <div id="board" class="board" aria-label="Chess board"></div>
+          <div class="game-help">Tap a piece, then tap its destination.</div>
+        </div>
+
+        <aside class="chat-entry">
+          <div class="lock-icon"></div>
+          <h2></h2>
+          <p></p>
+          <button id="openChatBtn" class="menu-dots" type="button" aria-label="Open menu" title="Menu"><span></span><span></span><span></span></button>
+        </aside>
+      </div>
+    </section>
+
+    <section id="pinView" class="screen hidden">
+      <div class="auth-card pin-card">
+        <div class="brand brand-logo"><img src="checkmate-logo.png" alt="CheckMate logo"><span>CheckMate</span></div>
+        <h1></h1>
+        <p class="pin-question">0h..0hh.. something went wrong!!</p>
+        <form id="pinForm">
+          <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="SYNTAX ERROR" autocomplete="off" required>
+          <button class="primary" type="submit">RETRY</button>
+        </form>
+        <button id="pinBackBtn" class="link-btn" type="button">← Back to Chess</button>
+        <p id="pinStatus" class="status"></p>
+      </div>
+    </section>
+
+    <section id="chatView" class="screen hidden">
+      <header class="topbar">
+        <button id="backBtn" class="ghost" type="button">← Chess</button>
+        <div class="chat-title">
+          <strong>Chat</strong>
+          <span class="chat-partner-status"><span id="chatPartner" class="muted">Choose a person</span><span class="presence-wrap"><span id="chatPresenceDot" class="presence-dot offline"></span><span id="chatPresenceLabel" class="presence-label">Offline</span></span><span id="lastSeenLabel" class="last-seen-label"></span><span id="typingLabel" class="typing-label"></span></span>
+        </div>
+        <button id="chatLogoutBtn" class="ghost" type="button">Log out</button>
+      </header>
+
+      <div class="chat-shell">
+        <div class="chat-tools">
+          <div class="partner-row">
+            <input id="partnerUsername" type="text" placeholder="Other person's username" autocomplete="off">
+            <button id="startChatBtn" class="primary" type="button">Open conversation</button>
+          </div>
+          <div class="chat-list-head"><strong>Chats</strong><button id="archiveBtn" class="ghost small-btn" type="button">🗂 Archive</button></div>
+          <div class="search-row"><input id="messageSearch" type="search" placeholder="Search messages…" autocomplete="off"></div>
+          <div id="chatList" class="chat-list"></div>
+          <div id="networkStatus" class="network-status online">Online</div>
+        </div>
+
+        <div id="messages" class="messages">
+          <div class="empty">Enter the other person's username to open the conversation.</div>
+        </div>
+        <div id="messageActions" class="message-actions hidden" aria-label="Message actions">
+          <button id="replyBtn" class="ghost small-btn" type="button">↩ Reply</button>
+          <button id="copyBtn" class="ghost small-btn" type="button">Copy</button>
+          <button class="reaction-btn" type="button" data-reaction="❤️">❤️</button>
+          <button class="reaction-btn" type="button" data-reaction="😂">😂</button>
+          <button class="reaction-btn" type="button" data-reaction="👍">👍</button>
+          <button id="deleteBtn" class="ghost small-btn danger-btn" type="button">Delete</button>
+          <button id="closeActionsBtn" class="ghost small-btn" type="button">×</button>
+        </div>
+
+        <form id="composer" class="composer">
+          <div id="replyPreview" class="reply-preview hidden"><span id="replyPreviewText"></span><button id="cancelReplyBtn" class="ghost small-btn" type="button">×</button></div>
+          <input id="messageInput" type="text" maxlength="2000" placeholder="Write a message…" autocomplete="off">
+          <input id="mediaInput" type="file" accept="image/*,video/*" hidden>
+          <button id="mediaBtn" class="icon-btn" type="button" title="Choose photo or video">＋</button>
+          <button id="cameraBtn" class="icon-btn" type="button" title="Use camera">📷</button>
+          <button class="send-btn" type="submit">Send</button>
+        </form>
+
+        <div id="cameraPanel" class="camera-panel hidden">
+          <video id="cameraVideo" autoplay playsinline></video>
+          <div class="camera-actions">
+            <button id="captureBtn" class="primary" type="button">Capture photo</button>
+            <button id="closeCameraBtn" class="ghost" type="button">Close</button>
+          </div>
+          <canvas id="cameraCanvas" hidden></canvas>
+        </div>
+        <div class="watermark">~made by IFHAM</div>
+        <p id="chatStatus" class="status"></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chess.js@1.4.0/dist/cjs/chess.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+  <div class="my-watermark">~made by IFHAM</div>
+</body>
+</html>
