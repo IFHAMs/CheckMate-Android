@@ -308,8 +308,8 @@ function subscribeMessages(){
 async function markSeen(){if(!conversationId||!isOnline())return;await sb.rpc("mark_conversation_seen",{cid:conversationId});}
 function cleanupChat(reset=true){if(realtimeChannel&&sb){sb.removeChannel(realtimeChannel);realtimeChannel=null;}stopTypingChannel();conversationId=null;otherUser=null;selectedMessage=null;replyToMessage=null;$("messageActions")?.classList.add("hidden");$("replyPreview")?.classList.add("hidden");if(reset){$("messages").innerHTML='<div class="empty">Enter the other person\'s username to open the conversation.</div>';$('chatPartner').textContent="Choose a person";}}
 
-async function makeId(){
-  if(window.crypto?.randomUUID)return window.makeId();
+function makeId(){
+  if(window.crypto?.randomUUID)return window.crypto.randomUUID();
   if(window.crypto?.getRandomValues){
     const b=new Uint8Array(16);
     window.crypto.getRandomValues(b);
@@ -322,7 +322,7 @@ async function makeId(){
 
 function sendText(body){
   if(!conversationId||!currentUser)return false;
-  const row={local_id:crypto.randomUUID(),conversation_id:conversationId,sender_id:currentUser.id,body,reply_to:replyToMessage?.id||null,created_at:new Date().toISOString()};
+  const row={local_id:makeId(),conversation_id:conversationId,sender_id:currentUser.id,body,reply_to:replyToMessage?.id||null,created_at:new Date().toISOString()};
   if(!isOnline()){queueMessage(row);renderMessages([]);status("chatStatus","Saved offline. It will send automatically when internet returns.");return true;}
   const {error}=await sb.from("messages").insert({conversation_id:conversationId,sender_id:currentUser.id,body,reply_to:replyToMessage?.id||null});
   if(error){queueMessage(row);status("chatStatus","Saved locally; it will retry when internet returns.");renderMessages([]);return true;}
