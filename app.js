@@ -308,7 +308,19 @@ function subscribeMessages(){
 async function markSeen(){if(!conversationId||!isOnline())return;await sb.rpc("mark_conversation_seen",{cid:conversationId});}
 function cleanupChat(reset=true){if(realtimeChannel&&sb){sb.removeChannel(realtimeChannel);realtimeChannel=null;}stopTypingChannel();conversationId=null;otherUser=null;selectedMessage=null;replyToMessage=null;$("messageActions")?.classList.add("hidden");$("replyPreview")?.classList.add("hidden");if(reset){$("messages").innerHTML='<div class="empty">Enter the other person\'s username to open the conversation.</div>';$('chatPartner').textContent="Choose a person";}}
 
-async function sendText(body){
+async function makeId(){
+  if(window.crypto?.randomUUID)return window.makeId();
+  if(window.crypto?.getRandomValues){
+    const b=new Uint8Array(16);
+    window.crypto.getRandomValues(b);
+    b[6]=(b[6]&15)|64;
+    b[8]=(b[8]&63)|128;
+    return [...b].map((x,i)=>((i===4||i===6||i===8||i===10)?"-":"")+x.toString(16).padStart(2,"0")).join("");
+  }
+  return Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)+"-"+Math.random().toString(36).slice(2);
+}
+
+function sendText(body){
   if(!conversationId||!currentUser)return false;
   const row={local_id:crypto.randomUUID(),conversation_id:conversationId,sender_id:currentUser.id,body,reply_to:replyToMessage?.id||null,created_at:new Date().toISOString()};
   if(!isOnline()){queueMessage(row);renderMessages([]);status("chatStatus","Saved offline. It will send automatically when internet returns.");return true;}
@@ -350,7 +362,7 @@ async function uploadMedia(file){
   if(!conversationId)return status("chatStatus","Open a conversation first.");
   if(!isOnline())return status("chatStatus","Media needs internet right now. Text messages can be queued offline.");
   if(file.size>50*1024*1024)return status("chatStatus","Please keep media under 50 MB.");
-  status("chatStatus","Uploading…");const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");const path=`${currentUser.id}/${crypto.randomUUID()}-${safe}`;
+  status("chatStatus","Uploading…");const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");const path=`${currentUser.id}/${makeId()}-${safe}`;
   const {error:uploadErr}=await sb.storage.from("chat-media").upload(path,file,{contentType:file.type,upsert:false});if(uploadErr){status("chatStatus",uploadErr.message);return;}
   const {data:urlData}=sb.storage.from("chat-media").getPublicUrl(path);
   const {error:msgErr}=await sb.from("messages").insert({conversation_id:conversationId,sender_id:currentUser.id,body:"",media_url:urlData.publicUrl,media_type:file.type});
