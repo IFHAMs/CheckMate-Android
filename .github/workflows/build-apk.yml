@@ -1,0 +1,184 @@
+name: Build CheckMate APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/build-apk.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create Android wrapper
+        shell: bash
+        run: |
+          set -e
+          mkdir -p app/src/main/java/com/ifham/checkmate
+          mkdir -p app/src/main/res/values
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "CheckMate"
+          include(":app")
+          EOF
+
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.7.3' apply false
+          }
+          EOF
+
+          cat > gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          EOF
+
+          cat > app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.ifham.checkmate'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId 'com.ifham.checkmate'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0.0'
+              }
+          }
+          EOF
+
+          cat > app/src/main/res/values/strings.xml <<'EOF'
+          <resources>
+              <string name="app_name">CheckMate</string>
+          </resources>
+          EOF
+
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.RECORD_AUDIO" />
+              <uses-permission android:name="android.permission.CAMERA" />
+              <application
+                  android:theme="@style/AppTheme"
+                  android:label="@string/app_name"
+                  android:usesCleartextTraffic="false"
+                  android:hardwareAccelerated="true">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:screenOrientation="portrait">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          cat > app/src/main/res/values/styles.xml <<'EOF'
+          <resources>
+              <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:colorAccent">#8ab4f8</item>
+                  <item name="android:navigationBarColor">#0b0f14</item>
+                  <item name="android:statusBarColor">#0b0f14</item>
+                  <item name="android:windowLightStatusBar">false</item>
+              </style>
+          </resources>
+          EOF
+
+          cat > app/src/main/java/com/ifham/checkmate/MainActivity.java <<'EOF'
+          package com.ifham.checkmate;
+
+          import android.Manifest;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.PermissionRequest;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.content.pm.PackageManager;
+
+          public class MainActivity extends Activity {
+              private WebView webView;
+              private static final int REQ = 100;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  webView = new WebView(this);
+                  setContentView(webView);
+
+                  if (android.os.Build.VERSION.SDK_INT >= 23 &&
+                      (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED ||
+                       checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)) {
+                      requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA}, REQ);
+                  }
+
+                  WebSettings s = webView.getSettings();
+                  s.setJavaScriptEnabled(true);
+                  s.setDomStorageEnabled(true);
+                  s.setMediaPlaybackRequiresUserGesture(false);
+                  s.setAllowFileAccess(true);
+                  s.setAllowContentAccess(true);
+
+                  webView.setWebViewClient(new WebViewClient());
+                  webView.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public void onPermissionRequest(final PermissionRequest request) {
+                          runOnUiThread(() -> request.grant(request.getResources()));
+                      }
+                  });
+
+                  webView.loadUrl("https://checkmate.gt.tc/");
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (webView.canGoBack()) webView.goBack();
+                  else super.onBackPressed();
+              }
+          }
+          EOF
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Build APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CheckMate-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
