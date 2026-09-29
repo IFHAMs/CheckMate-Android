@@ -11,12 +11,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Create Android wrapper
         shell: bash
         run: |
           set -e
           mkdir -p app/src/main/java/com/ifham/checkmate
           mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/drawable-nodpi
+          cp checkmate-logo.png app/src/main/res/drawable-nodpi/checkmate_logo.png
           cat > settings.gradle <<'EOF'
           pluginManagement {
               repositories {
@@ -81,7 +86,9 @@ jobs:
                   android:theme="@style/AppTheme"
                   android:label="@string/app_name"
                   android:usesCleartextTraffic="false"
-                  android:hardwareAccelerated="true">
+                  android:hardwareAccelerated="true"
+                  android:icon="@drawable/checkmate_logo"
+                  android:roundIcon="@drawable/checkmate_logo">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true"
