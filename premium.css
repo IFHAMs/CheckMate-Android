@@ -1,0 +1,14 @@
+/* CheckMate premium UI polish */
+:root{--glow:rgba(215,180,106,.20)}
+body{background:radial-gradient(circle at 20% 0%,#292d35 0,#111419 38%,#090b0e 100%);background-attachment:fixed}
+.game-card,.chat-entry,.chat-shell,.auth-card{box-shadow:0 18px 55px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.015) inset;backdrop-filter:blur(10px)}
+.primary,.send-btn{box-shadow:0 8px 24px var(--glow);transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+.primary:hover,.send-btn:hover{transform:translateY(-1px);filter:brightness(1.05);box-shadow:0 10px 30px var(--glow)}
+.ghost,.icon-btn{transition:transform .16s ease,background .16s ease,border-color .16s ease}
+.ghost:hover,.icon-btn:hover{transform:translateY(-1px);background:#292e36;border-color:#4b525d}
+.message{box-shadow:0 6px 18px rgba(0,0,0,.14);animation:messageIn .18s ease}
+@keyframes messageIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.chat-list-item{transition:background .16s ease,transform .16s ease}.chat-list-item:hover{transform:translateX(2px)}
+.voice-panel{box-shadow:0 -8px 25px rgba(0,0,0,.16)}
+.modal-card{box-shadow:0 24px 80px rgba(0,0,0,.65),0 0 35px rgba(215,180,106,.08)}
+@media(max-width:800px){.chat-shell{border-radius:16px}.messages{padding:14px}.topbar-actions{flex-wrap:wrap;justify-content:flex-end}}
